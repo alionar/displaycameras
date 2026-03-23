@@ -1,0 +1,17 @@
+dev/logs/displaycameras.log
+dev/logs/ipc.log
+dev/logs/mpv-garasi.log
+dev/logs/mpv-teras1belokan.log
+dev/logs/mpv-teras1garasi.log
+dev/logs/mpv-teras2.log
+dev/logs/mpv-teras2samping.log
+dev/logs/mpv-utama.log
+dev/logs/stats/garasi.started
+dev/logs/stats/teras1belokan.started
+dev/logs/stats/teras1garasi.restarts
+dev/logs/stats/teras1garasi.started
+dev/logs/stats/teras2.restarts
+dev/logs/stats/teras2.started
+dev/logs/stats/teras2samping.restarts
+dev/logs/stats/teras2samping.started
+dev/logs/stats/utama.started

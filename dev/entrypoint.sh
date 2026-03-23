@@ -1,26 +1,25 @@
 #!/bin/bash
-set -e
 
 DISPLAY_NUM=:0
 RESOLUTION="1920x1080x24"
 VNC_PORT=5900
 NOVNC_PORT=6080
 
-echo "==> Starting Xvfb virtual display at $DISPLAY_NUM ($RESOLUTION)"
-Xvfb $DISPLAY_NUM -screen 0 $RESOLUTION &
-sleep 1
+echo "==> Starting Xvnc (TigerVNC) at $DISPLAY_NUM ($RESOLUTION)"
+Xvnc $DISPLAY_NUM \
+    -geometry 1920x1080 \
+    -depth 24 \
+    -rfbport $VNC_PORT \
+    -SecurityTypes None &
+sleep 3
 
 echo "==> Starting Openbox window manager"
 DISPLAY=$DISPLAY_NUM openbox-session &
-sleep 1
-
-echo "==> Starting x11vnc"
-x11vnc -display $DISPLAY_NUM -nopw -listen 0.0.0.0 -port $VNC_PORT -forever -quiet &
-sleep 1
+sleep 2
 
 echo "==> Starting noVNC on port $NOVNC_PORT"
 websockify --web /usr/share/novnc $NOVNC_PORT localhost:$VNC_PORT &
-sleep 1
+sleep 2
 
 echo ""
 echo "============================================"

@@ -164,24 +164,46 @@ Adjust `feedsleep` upward if you see playback retries. Adjust `startsleep` upwar
 
 Test the full rewrite locally before deploying to the Pi. The `dev/` folder contains an ARM64 Docker environment with a virtual display accessible in your browser.
 
+**Base image:** `vascoguita/raspios:arm64` — built from the official Raspberry Pi OS Lite rootfs, the closest match to the real Pi environment.
+
+**Display stack:** TigerVNC (`Xvnc`) + noVNC + websockify — virtual display accessible via browser at port 6080.
+
+### Build and start
 ```bash
 cd dev/
-docker compose build
-docker compose run --rm displaycameras-dev test
+docker compose up -d --build
 ```
+
+`--build` forces a rebuild of the image. `-d` runs the container in the background.
 
 Open **http://localhost:6080/vnc.html** to see the virtual display.
 
-For an interactive shell instead of running tests:
+> **Note:** Port mapping warnings (`Published ports are discarded when using host network mode`) are expected and harmless — the container uses `network_mode: host` to reach cameras on your LAN.
+
+### Run automated tests
 ```bash
-docker compose run --rm displaycameras-dev
+docker exec -it displaycameras-dev bash /tests/run_tests.sh
+```
+
+### Interactive shell
+```bash
+docker exec -it displaycameras-dev bash
 # then inside:
 displaycameras start
 displaycameras status
 displaycameras stop
 ```
 
-To test against real cameras, edit `dev/config/layout.conf.default` and switch to the LIVE MODE block (real RTSP URLs). The container uses `network_mode: host` so it can reach cameras on your LAN.
+### Stop the container
+```bash
+docker compose down
+```
+
+### Switch to live camera feeds
+Edit `dev/config/layout.conf.default` — comment out the TEST MODE block and uncomment the LIVE MODE block with your real RTSP URLs. The container uses `network_mode: host` so it can reach cameras on your LAN directly.
+
+### CPU usage note
+Expect high CPU usage (~600%+) during testing on Mac. This is normal — the ARM64 container runs under QEMU emulation. On the real Raspberry Pi 4 (native ARM64 + hardware decode), CPU usage will be significantly lower.
 
 ## Debugging
 

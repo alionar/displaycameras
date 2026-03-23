@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 debian:bookworm
+FROM --platform=linux/arm64 vascoguita/raspios:arm64
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -6,10 +6,8 @@ RUN apt-get update && apt-get install -y \
     # Player and IPC
     mpv \
     socat \
-    # Virtual display
-    xvfb \
-    x11vnc \
-    novnc \
+    # Virtual display + VNC (tigervnc bundles X server + VNC in one)
+    tigervnc-standalone-server \
     websockify \
     # Test video generation
     ffmpeg \
@@ -19,7 +17,15 @@ RUN apt-get update && apt-get install -y \
     bash \
     x11-utils \
     openbox \
+    python3-xdg \
+    menu \
+    wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Install noVNC directly from GitHub (avoids broken apt package)
+RUN mkdir -p /usr/share/novnc && \
+    wget -qO- https://github.com/novnc/noVNC/archive/refs/tags/v1.4.0.tar.gz \
+    | tar xz --strip-components=1 -C /usr/share/novnc
 
 # Install scripts
 COPY scripts/displaycameras    /usr/bin/displaycameras
