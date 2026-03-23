@@ -1,0 +1,156 @@
+#!/bin/bash
+# Automated test suite for displaycameras mpv rewrite
+# Run inside the Docker container
+
+PASS=0
+FAIL=0
+LOGDIR=/var/log/displaycameras
+TESTLOG=$LOGDIR/test-results.log
+mkdir -p $LOGDIR
+
+# Tee all output to test log
+exec > >(tee -a "$TESTLOG") 2>&1
+
+echo "================================================"
+echo "  displaycameras mpv rewrite — test run"
+echo "  $(date '+%Y-%m-%d %H:%M:%S')"
+echo "  Logs: $LOGDIR"
+echo "================================================"
+
+ok()      { echo "  [PASS] $1"; PASS=$((PASS+1)); }
+fail()    { echo "  [FAIL] $1"; FAIL=$((FAIL+1)); }
+section() { echo ""; echo "=== $1 ==="; }
+
+# ─────────────────────────────────────────
+section "1. Prerequisites"
+# ─────────────────────────────────────────
+
+which mpv &>/dev/null          && ok "mpv installed"          || fail "mpv not found"
+which socat &>/dev/null        && ok "socat installed"        || fail "socat not found"
+which mpv_ipccontrol &>/dev/null && ok "mpv_ipccontrol found" || fail "mpv_ipccontrol not found"
+which displaycameras &>/dev/null && ok "displaycameras found" || fail "displaycameras not found"
+[ -f /etc/displaycameras/displaycameras.conf ] && ok "displaycameras.conf exists" || fail "displaycameras.conf missing"
+[ -f /etc/displaycameras/layout.conf.default ] && ok "layout.conf.default exists" || fail "layout.conf.default missing"
+[ -f /test/test.mp4 ]          && ok "test video exists"      || fail "test video missing"
+
+# ─────────────────────────────────────────
+section "2. Geometry Conversion"
+# ─────────────────────────────────────────
+
+convert_geometry() {
+    read x1 y1 x2 y2 <<< $1
+    echo "$((x2-x1+1))x$((y2-y1+1))+${x1}+${y1}"
+}
+
+[ "$(convert_geometry '0 0 639 359')"      = "640x360+0+0"      ] && ok "Geometry: upper_left"   || fail "Geometry: upper_left"
+[ "$(convert_geometry '640 0 1279 359')"   = "640x360+640+0"    ] && ok "Geometry: upper_middle" || fail "Geometry: upper_middle"
+[ "$(convert_geometry '1280 0 1919 359')"  = "640x360+1280+0"   ] && ok "Geometry: upper_right"  || fail "Geometry: upper_right"
+[ "$(convert_geometry '0 360 639 719')"    = "640x360+0+360"    ] && ok "Geometry: center_left"  || fail "Geometry: center_left"
+
+# ─────────────────────────────────────────
+section "3. mpv Launch + IPC Socket"
+# ─────────────────────────────────────────
+
+mkdir -p /var/run/displaycameras
+
+# Start a single mpv instance manually
+DISPLAY=:0 mpv \
+    --no-terminal \
+    --no-border \
+    --geometry=640x360+0+0 \
+    --hwdec=no \
+    --input-ipc-server=/tmp/mpv-test.sock \
+    --loop \
+    /test/test.mp4 &>/dev/null &
+MPV_PID=$!
+echo $MPV_PID > /var/run/displaycameras/mpv-test.pid
+sleep 4
+
+kill -0 $MPV_PID 2>/dev/null && ok "mpv process running" || fail "mpv process not running"
+[ -S /tmp/mpv-test.sock ]    && ok "IPC socket created"  || fail "IPC socket not created"
+
+# ─────────────────────────────────────────
+section "4. mpv_ipccontrol Commands"
+# ─────────────────────────────────────────
+
+status=$(mpv_ipccontrol test getplaystatus)
+[ "$status" = "Playing" ] && ok "getplaystatus returns Playing" || fail "getplaystatus: got '$status'"
+
+sleep 3
+pos=$(mpv_ipccontrol test getposition)
+[ "$pos" != "0s" ] && ok "getposition returns non-zero: $pos" || fail "getposition: got '$pos'"
+
+mpv_ipccontrol test quit
+sleep 1
+kill -0 $MPV_PID 2>/dev/null && fail "mpv still running after quit" || ok "quit stops mpv"
+
+# ─────────────────────────────────────────
+section "5. displaycameras start/status/stop"
+# ─────────────────────────────────────────
+
+displaycameras start
+sleep 2
+
+[ -f /var/run/displaycameras/displaycameras.pid ] && ok "PID file created" || fail "PID file missing"
+
+status_out=$(displaycameras status)
+playing=$(echo "$status_out" | grep -c "is Playing")
+[ "$playing" -ge 1 ] && ok "$playing camera(s) Playing" || fail "No cameras playing: $status_out"
+
+displaycameras stop
+sleep 2
+
+pgrep mpv &>/dev/null && fail "mpv still running after stop" || ok "All mpv stopped after stop"
+[ ! -f /var/run/displaycameras/displaycameras.pid ] && ok "PID file removed" || fail "PID file still exists"
+
+# ─────────────────────────────────────────
+section "6. displaycameras repair"
+# ─────────────────────────────────────────
+
+displaycameras start
+sleep 3
+
+# Manually kill one camera to simulate failure
+cam_pid=$(cat /var/run/displaycameras/mpv-garasi.pid 2>/dev/null)
+if [ -n "$cam_pid" ]; then
+    kill $cam_pid 2>/dev/null
+    sleep 1
+    kill -0 $cam_pid 2>/dev/null && fail "Camera not killed" || ok "Simulated camera failure (garasi)"
+    displaycameras repair
+    sleep 5
+    new_status=$(mpv_ipccontrol garasi getplaystatus)
+    [ "$new_status" = "Playing" ] && ok "garasi recovered after repair" || fail "garasi not recovered: '$new_status'"
+else
+    fail "Could not get garasi PID for repair test"
+fi
+
+displaycameras stop
+
+# ─────────────────────────────────────────
+section "Summary"
+# ─────────────────────────────────────────
+echo ""
+echo "  Passed: $PASS"
+echo "  Failed: $FAIL"
+echo ""
+if [ "$FAIL" -eq 0 ]; then
+    echo "  ALL TESTS PASSED"
+else
+    echo "  SOME TESTS FAILED"
+    echo ""
+    echo "=== Log files for analysis ==="
+    echo "  Test results : $TESTLOG"
+    echo "  Main script  : $LOGDIR/displaycameras.log"
+    echo "  IPC commands : $LOGDIR/ipc.log"
+    for f in $LOGDIR/mpv-*.log; do
+        echo "  mpv          : $f"
+    done
+    echo ""
+    echo "=== Last 20 lines of displaycameras.log ==="
+    tail -20 $LOGDIR/displaycameras.log 2>/dev/null || echo "  (empty)"
+    echo ""
+    echo "=== Last 20 lines of ipc.log ==="
+    tail -20 $LOGDIR/ipc.log 2>/dev/null || echo "  (empty)"
+fi
+
+[ "$FAIL" -eq 0 ] && exit 0 || exit 1
