@@ -120,6 +120,7 @@ start_player() {
         --no-border \
         --ontop \
         --geometry="$geo" \
+        --title="$name" \
         --hwdec=no \
         --rtsp-transport=tcp \
         --demuxer-lavf-o=timeout=$((omx_timeout * 1000000)) \

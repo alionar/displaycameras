@@ -4,7 +4,7 @@
 DIR=$(dirname "$(readlink -f "$0")")
 
 # Install prerequisites
-for package in mpv socat xserver-xorg-core xserver-xorg xinit openbox fbi; do
+for package in mpv socat xserver-xorg-core xserver-xorg xinit openbox procps; do
     if [ "$(dpkg-query -s $package 2>/dev/null | grep Status | awk '{print $4}')" != "installed" ]; then
         apt-get install $package -y
     fi
@@ -77,6 +77,30 @@ WantedBy=multi-user.target
 XORG_EOF
     systemctl daemon-reload
     systemctl enable xorg
+
+    # Set up openbox config — disable window decorations for mpv windows
+    echo "Setting up openbox config."
+    mkdir -p /root/.config/openbox
+    cat > /root/.config/openbox/rc.xml <<'OPENBOX_EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <applications>
+    <application class="*" name="mpv">
+      <decor>no</decor>
+      <focus>no</focus>
+    </application>
+  </applications>
+</openbox_config>
+OPENBOX_EOF
+
+    # Disable screen blanking and DPMS via openbox autostart
+    echo "Disabling screen blanking in openbox autostart."
+    mkdir -p /etc/xdg/openbox
+    cat >> /etc/xdg/openbox/autostart <<'AUTOSTART_EOF'
+xset -dpms
+xset s noblank
+xset s off
+AUTOSTART_EOF
 fi
 
 # Copy mpv_ipccontrol (replaces omxplayer_dbuscontrol)

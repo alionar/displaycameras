@@ -38,6 +38,12 @@ RUN mkdir -p /etc/displaycameras
 COPY config/displaycameras.conf       /etc/displaycameras/displaycameras.conf
 COPY config/layout.conf.default       /etc/displaycameras/layout.conf.default
 
+# Openbox config — disable window decorations for mpv + disable screen blanking
+RUN mkdir -p /root/.config/openbox /etc/xdg/openbox
+COPY config/openbox-rc.xml           /root/.config/openbox/rc.xml
+RUN printf '#!/bin/sh\nxset -dpms 2>/dev/null || true\nxset s noblank 2>/dev/null || true\nxset s off 2>/dev/null || true\n' > /etc/xdg/openbox/autostart && \
+    chmod +x /etc/xdg/openbox/autostart
+
 # Generate test video (640x360 color bars, 1 hour loop)
 RUN mkdir -p /test && \
     ffmpeg -f lavfi -i testsrc=size=640x360:rate=25 -t 60 /test/test.mp4 -y -loglevel quiet

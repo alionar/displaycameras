@@ -120,7 +120,8 @@ start_player() {
         --no-border \
         --ontop \
         --geometry="$geo" \
-        --hwdec=no \
+        --title="$name" \
+        --hwdec=auto-safe \
         --rtsp-transport=tcp \
         --demuxer-lavf-o=timeout=$((omx_timeout * 1000000)) \
         --input-ipc-server="/tmp/mpv-${name}.sock" \
