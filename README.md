@@ -121,6 +121,7 @@ Edit `/etc/displaycameras/displaycameras.conf` and `/etc/displaycameras/layout.c
 | `rotate` | Set `"true"` to enable camera rotation |
 | `rotatedelay` | Seconds between rotation steps |
 | `displaydetect` | Set `"true"` to auto-detect display resolution |
+| `video_rotate` | Rotate video output for sideways-mounted cameras. Valid values: `0`, `90`, `180`, `270` |
 
 ### Camera and Window Layout (`layout.conf.default`)
 - Define `windows`, `window_positions`, `camera_names`, and `camera_feeds`
