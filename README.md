@@ -122,6 +122,7 @@ Edit `/etc/displaycameras/displaycameras.conf` and `/etc/displaycameras/layout.c
 | `rotatedelay` | Seconds between rotation steps |
 | `displaydetect` | Set `"true"` to auto-detect display resolution |
 | `video_rotate` | Rotate video output for sideways-mounted cameras. Valid values: `0`, `90`, `180`, `270` |
+| `mpv_extra_opts` | Extra mpv flags appended to every camera instance (e.g. `"--vo=x11"`) |
 
 ### Camera and Window Layout (`layout.conf.default`)
 - Define `windows`, `window_positions`, `camera_names`, and `camera_feeds`
@@ -294,6 +295,43 @@ xset -dpms
 xset s noblank
 xset s off
 ```
+
+---
+
+# Troubleshooting
+
+## OpenGL errors / camera restarts in a loop
+
+If you see repeated errors like the following in a camera's log file:
+
+```
+[vo/gpu/opengl] after rendering: OpenGL error INVALID_OPERATION.
+```
+
+...and the camera feed keeps restarting every few seconds, your Pi's GPU driver is not compatible with mpv's default OpenGL video output. This is common on non-standard or small HDMI displays (e.g. 800×480).
+
+**Fix:** add `--vo=x11` to `mpv_extra_opts` in `/etc/displaycameras/displaycameras.conf`:
+
+```bash
+mpv_extra_opts="--vo=x11"
+```
+
+This switches mpv to a pure software X11 video output (no OpenGL required). CPU usage will be slightly higher but the feed will play reliably.
+
+After editing, restart the service:
+```bash
+sudo systemctl restart displaycameras
+```
+
+## Camera feed is rotated / portrait instead of landscape
+
+If your camera is physically mounted sideways and the feed appears rotated, set `video_rotate` in `/etc/displaycameras/displaycameras.conf`:
+
+```bash
+video_rotate=270   # or 90, 180 depending on your mount
+```
+
+> **Note:** `rotate="true"` is for cycling camera feeds through windows — it does not affect video orientation.
 
 ---
 

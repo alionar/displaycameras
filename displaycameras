@@ -129,6 +129,7 @@ start_player() {
         --log-file="$mpvlog" \
         --msg-level=all=warn \
         ${video_rotate:+--video-rotate=$video_rotate} \
+        ${mpv_extra_opts:+$mpv_extra_opts} \
         "$feed" >> "$mpvlog" 2>&1 &
     echo $! > "$pidf"
 }
