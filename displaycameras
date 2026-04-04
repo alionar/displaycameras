@@ -94,6 +94,11 @@ get_uptime() {
 cameras="${#camera_names[@]}"
 max_seq=$((cameras-1))
 
+# Ensure sequence step value is reasonable
+if [ "$seq_step" = "" ] || [ "$seq_step" -gt "$max_seq" ] || [ "$seq_step" -lt "1" ]; then
+    seq_step=1
+fi
+
 [ ! -f $DISPLAY_SEQUENCE_FILE ] && echo 0 > $DISPLAY_SEQUENCE_FILE
 declare -i DISPLAY_SEQUENCE
 DISPLAY_SEQUENCE=$(cat $DISPLAY_SEQUENCE_FILE)
@@ -140,10 +145,6 @@ start)
     if [ -f $PIDFILE ]; then
         echo "PID file exists! Stop or Restart this service instead."
         exit 1
-    fi
-    if [ "$blank" = "true" ]; then
-        log "Blanking screen"
-        fbi --noverbose -T 2 /usr/bin/black.png >/dev/null 2>&1 &
     fi
     [ "$displaydetectactive" = "true" ] && echo "Display detection active for $mode resolution."
     startupfailure=false
@@ -192,7 +193,7 @@ start)
     if [ "$rotate" = "true" ]; then
         [ "$rotatedelay" = "" ] && rotatedelay=5
         log "Starting camera rotation"
-        rotatedisplays $rotatedelay &
+        rotatedisplays $rotatedelay $seq_step &
     fi
     ;;
 
@@ -204,7 +205,6 @@ stop)
         mpv_ipccontrol $i quit
     done
     sleep 2
-    [ "$blank" = "true" ] && pkill fbi
     killall mpv > /dev/null 2>&1
     log "Camera Display Stopped"
     exit 0
@@ -263,7 +263,7 @@ repair)
             if [ "$rotate" = "true" ] && [ "$2" != "startup" ]; then
                 [ "$rotatedelay" = "" ] && rotatedelay=5
                 echo "Restarting camera rotation"
-                rotatedisplays $rotatedelay &
+                rotatedisplays $rotatedelay $seq_step &
             fi
         fi
     done
@@ -335,6 +335,40 @@ logs)
     for f in $STATSDIR/*.restarts; do
         [ -f "$f" ] && printf '  %-20s %s restarts\n' "$(basename $f .restarts)" "$(cat $f)"
     done
+    ;;
+
+rotate)
+    if [ ! -f $PIDFILE ]; then exit 0; fi
+    DISPLAY_SEQUENCE=$((DISPLAY_SEQUENCE-seq_step))
+    if [ "$DISPLAY_SEQUENCE" -lt "0" ]; then
+        DISPLAY_SEQUENCE="$max_seq"
+    fi
+    for i in ${!camera_names[*]}; do
+        y=$((i-DISPLAY_SEQUENCE-1))
+        [ "$y" -lt "0" ] && y=$((y+${#camera_names[@]}))
+        [ "$y" -ge "${#camera_names[@]}" ] && y=$((y-${#camera_names[@]}))
+        x=$((y+DISPLAY_SEQUENCE))
+        [ "$x" -ge "${#camera_names[@]}" ] && x=$((x-${#camera_names[@]}))
+        mpv_ipccontrol "${camera_names[$y]}" setvideopos "$(convert_geometry "${window_positions[$x]}")"
+    done
+    echo $DISPLAY_SEQUENCE > $DISPLAY_SEQUENCE_FILE
+    ;;
+
+rotaterev)
+    if [ ! -f $PIDFILE ]; then exit 0; fi
+    DISPLAY_SEQUENCE=$((DISPLAY_SEQUENCE+seq_step))
+    if [ "$DISPLAY_SEQUENCE" -ge "${#camera_names[@]}" ]; then
+        DISPLAY_SEQUENCE=0
+    fi
+    for i in ${!camera_names[*]}; do
+        y=$((i-DISPLAY_SEQUENCE+1))
+        [ "$y" -lt "0" ] && y=$((y+${#camera_names[@]}))
+        [ "$y" -ge "${#camera_names[@]}" ] && y=$((y-${#camera_names[@]}))
+        x=$((y+DISPLAY_SEQUENCE))
+        [ "$x" -ge "${#camera_names[@]}" ] && x=$((x-${#camera_names[@]}))
+        mpv_ipccontrol "${camera_names[$y]}" setvideopos "$(convert_geometry "${window_positions[$x]}")"
+    done
+    echo $DISPLAY_SEQUENCE > $DISPLAY_SEQUENCE_FILE
     ;;
 
 *)

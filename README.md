@@ -117,7 +117,7 @@ Edit `/etc/displaycameras/displaycameras.conf` and `/etc/displaycameras/layout.c
 | `startsleep` | Seconds to wait after launching each mpv instance |
 | `feedsleep` | Seconds to wait before checking feed playback position |
 | `retry` | Max retries for startup and feed checks |
-| `blank` | Set `"true"` to blank screen on start (uses `xset dpms`) |
+| `blank` | _(removed)_ Screen blanking is automatic under X11 |
 | `rotate` | Set `"true"` to enable camera rotation |
 | `rotatedelay` | Seconds between rotation steps |
 | `displaydetect` | Set `"true"` to auto-detect display resolution |
@@ -272,10 +272,10 @@ Enable `displaydetect="true"` in `displaycameras.conf` and create layout files n
 ## Rotation
 To rotate more cameras through fewer windows, set `rotate="true"` in `displaycameras.conf` and ensure you have at least as many `window_positions` as `camera_names`.
 
-> **Note:** mpv has no equivalent to omxplayer's `setvideopos` DBUS command. Rotation works by stopping and restarting each mpv instance at the new geometry. This is seamless for most use cases since rotation is typically infrequent.
+> **Note:** mpv's `geometry` property can be updated at runtime via IPC, so rotation repositions windows without restarting the player. Streams continue playing during rotation.
 
 ## Display Blanking
-Set `blank="true"` to blank the screen on start. Uses `xset dpms force off` (replaces `fbi` which is broken on Bookworm with KMS).
+Screen blanking is handled automatically — X11 starts with a black root window, hiding console output. The `blank` config option (which used `fbi`) has been removed since `fbi` does not work under X11+KMS. Screen saver and DPMS are disabled via `xset` in the openbox autostart.
 
 ## Bookworm / KMS display notes
 Raspberry Pi OS Bookworm uses full KMS (`vc4-kms-v3d`). If you see a black screen when X11 starts, add an explicit xorg config:
@@ -362,7 +362,7 @@ window_positions=(
 | Window position | `--win "x1 y1 x2 y2"` | `--geometry=WxH+X+Y` (auto-converted) |
 | Hardware decode | OpenMAX IL | `--hwdec=auto-safe` |
 | Health check | DBUS via `omxplayer_dbuscontrol` | IPC socket via `mpv_ipccontrol` + socat |
-| Screen blanking | `fbi` | `xset dpms` |
+| Screen blanking | `fbi` | Automatic (X11 black root window) |
 | Control script | `omxplayer_dbuscontrol` | `mpv_ipccontrol` |
 | Logging | None | Per-camera logs + IPC log + restart counters |
 | New commands | — | `observe`, `debug`, `logs` |
