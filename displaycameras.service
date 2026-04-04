@@ -5,13 +5,15 @@ Wants=network-online.target
 Requires=xorg.service
 
 [Service]
-Type=forking
+Type=oneshot
+RemainAfterExit=yes
+Restart=no
+KillMode=control-group
+GuessMainPID=no
+TimeoutStopSec=30
 ExecStart=/usr/bin/displaycameras start
 ExecStop=/usr/bin/displaycameras stop
 ExecReload=/usr/bin/displaycameras repair
-PIDFile=/var/run/displaycameras/displaycameras.pid
-Restart=on-failure
-RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
