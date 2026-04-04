@@ -27,20 +27,20 @@ RUN mkdir -p /usr/share/novnc && \
     wget -qO- https://github.com/novnc/noVNC/archive/refs/tags/v1.4.0.tar.gz \
     | tar xz --strip-components=1 -C /usr/share/novnc
 
-# Install scripts
-COPY scripts/displaycameras    /usr/bin/displaycameras
-COPY scripts/mpv_ipccontrol    /usr/bin/mpv_ipccontrol
-COPY scripts/rotatedisplays    /usr/bin/rotatedisplays
+# Install scripts (from repo root — build context is ../)
+COPY displaycameras    /usr/bin/displaycameras
+COPY mpv_ipccontrol    /usr/bin/mpv_ipccontrol
+COPY rotatedisplays    /usr/bin/rotatedisplays
 RUN chmod 0755 /usr/bin/displaycameras /usr/bin/mpv_ipccontrol /usr/bin/rotatedisplays
 
 # Install config
 RUN mkdir -p /etc/displaycameras
-COPY config/displaycameras.conf       /etc/displaycameras/displaycameras.conf
-COPY config/layout.conf.default       /etc/displaycameras/layout.conf.default
+COPY dev/config/displaycameras.conf       /etc/displaycameras/displaycameras.conf
+COPY dev/config/layout.conf.default       /etc/displaycameras/layout.conf.default
 
 # Openbox config — disable window decorations for mpv + disable screen blanking
 RUN mkdir -p /root/.config/openbox /etc/xdg/openbox
-COPY config/openbox-rc.xml           /root/.config/openbox/rc.xml
+COPY dev/config/openbox-rc.xml           /root/.config/openbox/rc.xml
 RUN printf '#!/bin/sh\nxset -dpms 2>/dev/null || true\nxset s noblank 2>/dev/null || true\nxset s off 2>/dev/null || true\n' > /etc/xdg/openbox/autostart && \
     chmod +x /etc/xdg/openbox/autostart
 
@@ -51,7 +51,7 @@ RUN mkdir -p /test && \
 # PID dir
 RUN mkdir -p /var/run/displaycameras
 
-COPY entrypoint.sh /entrypoint.sh
+COPY dev/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 6080

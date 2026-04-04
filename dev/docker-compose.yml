@@ -1,7 +1,8 @@
 services:
   displaycameras-dev:
     build:
-      context: .
+      context: ..
+      dockerfile: dev/Dockerfile
       platforms:
         - linux/arm64
     platform: linux/arm64
@@ -10,10 +11,10 @@ services:
     ports:
       - "6080:6080"                   # noVNC → open http://localhost:6080/vnc.html
     volumes:
-      - ./scripts/displaycameras:/usr/bin/displaycameras    # live edit — no rebuild needed
-      - ./scripts/mpv_ipccontrol:/usr/bin/mpv_ipccontrol    # live edit — no rebuild needed
-      - ./scripts/rotatedisplays:/usr/bin/rotatedisplays    # live edit — no rebuild needed
-      - ./config:/etc/displaycameras                        # live edit config
+      - ../displaycameras:/usr/bin/displaycameras             # live edit — no rebuild needed
+      - ../mpv_ipccontrol:/usr/bin/mpv_ipccontrol            # live edit — no rebuild needed
+      - ../rotatedisplays:/usr/bin/rotatedisplays            # live edit — no rebuild needed
+      - ./config:/etc/displaycameras                         # live edit config
       - ./tests:/tests                                      # live edit tests
       - ./logs:/var/log/displaycameras                      # persist logs on host
     environment:
