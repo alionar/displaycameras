@@ -333,6 +333,24 @@ video_rotate=270   # or 90, 180 depending on your mount
 
 > **Note:** `rotate="true"` is for cycling camera feeds through windows — it does not affect video orientation.
 
+## Camera feed shows as a small window instead of fullscreen
+
+If your display uses OS-level rotation (e.g. via `display_rotate` in `/boot/config.txt`), the effective resolution seen by X11 may be rotated. For example, an 800×480 display rotated 90° becomes 480×800 in X11.
+
+Your `window_positions` in the layout config must match the **post-rotation** resolution. Check your effective resolution with:
+
+```bash
+DISPLAY=:0 xdpyinfo | grep dimensions
+```
+
+Then adjust your layout config accordingly. For a 480×800 effective resolution:
+
+```
+window_positions=(
+"0 0 479 799"
+)
+```
+
 ---
 
 # Key Differences from omxplayer Branch

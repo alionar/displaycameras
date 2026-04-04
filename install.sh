@@ -68,7 +68,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/bin/startx /usr/bin/openbox-session -- :0 vt7 -ac
+ExecStart=/usr/bin/startx /usr/bin/openbox-session -- :0 vt7 -ac -nocursor
 Restart=on-failure
 RestartSec=5
 

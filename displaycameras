@@ -120,6 +120,7 @@ start_player() {
         --no-border \
         --ontop \
         --geometry="$geo" \
+        --no-keepaspect \
         --title="$name" \
         --hwdec=auto-safe \
         --rtsp-transport=tcp \
