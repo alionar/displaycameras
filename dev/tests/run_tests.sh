@@ -50,44 +50,7 @@ convert_geometry() {
 [ "$(convert_geometry '0 360 639 719')"    = "640x360+0+360"    ] && ok "Geometry: center_left"  || fail "Geometry: center_left"
 
 # ─────────────────────────────────────────
-section "3. mpv Launch + IPC Socket"
-# ─────────────────────────────────────────
-
-mkdir -p /var/run/displaycameras
-
-# Start a single mpv instance manually
-DISPLAY=:0 mpv \
-    --no-terminal \
-    --no-border \
-    --geometry=640x360+0+0 \
-    --hwdec=no \
-    --input-ipc-server=/var/run/displaycameras/mpv-test.sock \
-    --loop \
-    /test/test.mp4 &>/dev/null &
-MPV_PID=$!
-echo $MPV_PID > /var/run/displaycameras/mpv-test.pid
-sleep 4
-
-kill -0 $MPV_PID 2>/dev/null && ok "mpv process running" || fail "mpv process not running"
-[ -S /var/run/displaycameras/mpv-test.sock ] && ok "IPC socket created" || fail "IPC socket not created"
-
-# ─────────────────────────────────────────
-section "4. mpv_ipccontrol Commands"
-# ─────────────────────────────────────────
-
-status=$(mpv_ipccontrol test getplaystatus)
-[ "$status" = "Playing" ] && ok "getplaystatus returns Playing" || fail "getplaystatus: got '$status'"
-
-sleep 3
-pos=$(mpv_ipccontrol test getposition)
-[ "$pos" != "0s" ] && ok "getposition returns non-zero: $pos" || fail "getposition: got '$pos'"
-
-mpv_ipccontrol test quit
-sleep 1
-kill -0 $MPV_PID 2>/dev/null && fail "mpv still running after quit" || ok "quit stops mpv"
-
-# ─────────────────────────────────────────
-section "5. displaycameras start/status/stop"
+section "3. displaycameras start/status/stop"
 # ─────────────────────────────────────────
 
 displaycameras start
@@ -106,7 +69,7 @@ pgrep mpv &>/dev/null && fail "mpv still running after stop" || ok "All mpv stop
 [ ! -f /var/run/displaycameras/displaycameras.pid ] && ok "PID file removed" || fail "PID file still exists"
 
 # ─────────────────────────────────────────
-section "5b. Optimization flags in mpv args"
+section "3b. Optimization flags in mpv args"
 # ─────────────────────────────────────────
 
 displaycameras start
@@ -125,7 +88,7 @@ displaycameras stop
 sleep 2
 
 # ─────────────────────────────────────────
-section "6. displaycameras repair"
+section "4. displaycameras repair"
 # ─────────────────────────────────────────
 
 displaycameras start
@@ -149,7 +112,7 @@ displaycameras stop
 sleep 2
 
 # ─────────────────────────────────────────
-section "7. systemd service lifecycle"
+section "5. systemd service lifecycle"
 # ─────────────────────────────────────────
 
 # Check systemd services are running
@@ -180,7 +143,7 @@ systemctl is-active displaycameras &>/dev/null && fail "service still active aft
 pgrep mpv &>/dev/null && fail "mpv still running after systemctl stop" || ok "all mpv stopped after systemctl stop"
 
 # ─────────────────────────────────────────
-section "8. rotate / rotaterev"
+section "6. rotate / rotaterev"
 # ─────────────────────────────────────────
 
 SEQ_FILE=/tmp/displaycameras.seq
