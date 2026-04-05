@@ -26,6 +26,12 @@ if [ ! "$(which mpv)" ]; then
     exit 1
 fi
 
+# Detect --force-window-position support (required on mpv ≥0.39, no-op on older)
+FORCE_POS=""
+if mpv --list-options 2>/dev/null | grep -q 'force-window-position'; then
+    FORCE_POS="--force-window-position=yes"
+fi
+
 # Load global config
 if [ -r /etc/displaycameras/displaycameras.conf ]; then
     . /etc/displaycameras/displaycameras.conf
@@ -135,6 +141,7 @@ start_player() {
         --log-file="$mpvlog" \
         --msg-level=all=warn \
         ${video_rotate:+--video-rotate=$video_rotate} \
+        ${FORCE_POS:+$FORCE_POS} \
         ${mpv_extra_opts:+$mpv_extra_opts} \
         "$feed" >> "$mpvlog" 2>&1 &
     echo $! > "$pidf"

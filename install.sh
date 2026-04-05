@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install displaycameras with mpv for 64-bit Raspberry Pi OS (Bookworm)
+# Install displaycameras with mpv for 64-bit Raspberry Pi OS (Bookworm/Trixie)
 
 DIR=$(dirname "$(readlink -f "$0")")
 

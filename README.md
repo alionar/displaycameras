@@ -2,7 +2,7 @@
 
 displaycameras is a set of scripts run as a service on Raspberry Pi hardware to locally display RTSP streams from IP security cameras. It displays each configured feed in a grid of windows on a locally attached display.
 
-> **64-bit Raspberry Pi OS (Bookworm) support:** This branch (`feature/mpv-64bit`) replaces omxplayer with **mpv**, enabling full support on 64-bit ARM. omxplayer was removed from Raspberry Pi OS in Bullseye/Bookworm. See [Key Differences](#key-differences-from-omxplayer-branch) below.
+> **64-bit Raspberry Pi OS (Bookworm/Trixie) support:** This branch (`feature/mpv-64bit`) replaces omxplayer with **mpv**, enabling full support on 64-bit ARM. omxplayer was removed from Raspberry Pi OS in Bullseye/Bookworm. See [Key Differences](#key-differences-from-omxplayer-branch) below.
 
 ## Donations
 If you feel compelled to contribute to the project, feel free to send funds to https://www.paypal.me/anonymousdog
@@ -12,7 +12,7 @@ If you feel compelled to contribute to the project, feel free to send funds to h
 # Pre-requisites
 
 * Raspberry Pi hardware
-* **64-bit Raspberry Pi OS (Bookworm)** — this branch targets ARM64
+* **64-bit Raspberry Pi OS (Bookworm or Trixie)** — this branch targets ARM64
 * systemd init system
 * Raspbian Lite is **STRONGLY** recommended
 * A locally attached display (HDMI)
