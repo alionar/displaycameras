@@ -99,6 +99,20 @@ get_restarts() {
 mark_start() { date '+%s' > "$STATSDIR/${1}.started"; }
 
 cameras="${#camera_names[@]}"
+
+# Validate layout config: positions must cover all cameras
+if [ "${#window_positions[@]}" -lt "$cameras" ]; then
+    echo "ERROR: layout config has ${#window_positions[@]} window_positions but $cameras camera_names" >&2
+    echo "Each camera needs a window position. Check your layout.conf file." >&2
+    exit 1
+fi
+for i in ${!window_positions[*]}; do
+    if ! echo "${window_positions[$i]}" | grep -qE '^[0-9]+ [0-9]+ [0-9]+ [0-9]+$'; then
+        echo "ERROR: window_positions[$i] = '${window_positions[$i]}' — expected 4 integers (x1 y1 x2 y2)" >&2
+        exit 1
+    fi
+done
+
 max_seq=$((cameras-1))
 
 # Ensure sequence step value is reasonable
@@ -112,7 +126,7 @@ DISPLAY_SEQUENCE=$(cat $DISPLAY_SEQUENCE_FILE)
 
 # Convert omxplayer "x1 y1 x2 y2" → mpv "WxH+X+Y"
 convert_geometry() {
-    read x1 y1 x2 y2 <<< $1
+    read x1 y1 x2 y2 <<< "$1"
     echo "$((x2-x1+1))x$((y2-y1+1))+${x1}+${y1}"
 }
 
@@ -228,7 +242,7 @@ repair)
     exec 200>/var/run/displaycameras/repair.lock
     flock -n 200 || exit 0
     if [ ! -f $PIDFILE ]; then exit 0; fi
-    if [ "$(pgrep -c mpv)" -gt "$cameras" ]; then
+    if [ "$(pgrep -cf 'mpv.*--input-ipc-server=/tmp/mpv-')" -gt "$cameras" ]; then
         $0 restart
     fi
     for i in ${!camera_names[*]}; do
@@ -320,6 +334,11 @@ debug)
     # Toggle mpv log verbosity for a specific camera
     # Usage: displaycameras debug <camera_name> [on|off]
     cam="$2"
+    if [ -z "$cam" ]; then
+        echo "Usage: $0 debug <camera_name> [on|off]" >&2
+        echo "Available cameras: ${camera_names[*]}" >&2
+        exit 1
+    fi
     mode="${3:-on}"
     mpvlog="$LOGDIR/mpv-${cam}.log"
     if [ "$mode" = "on" ]; then
