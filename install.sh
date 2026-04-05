@@ -117,12 +117,6 @@ if [ -r $DIR/rotatedisplays ]; then
     cp -f $DIR/rotatedisplays /usr/bin/ && chown root:root /usr/bin/rotatedisplays && chmod 0755 /usr/bin/rotatedisplays
 fi
 
-# Copy black.png
-if [ -r $DIR/black.png ]; then
-    echo "Copying black.png."
-    cp -f $DIR/black.png /usr/bin/ && chown root:root /usr/bin/black.png
-fi
-
 systemctl daemon-reload
 systemctl enable displaycameras
 
