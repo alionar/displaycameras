@@ -61,7 +61,7 @@ DISPLAY=:0 mpv \
     --no-border \
     --geometry=640x360+0+0 \
     --hwdec=no \
-    --input-ipc-server=/tmp/mpv-test.sock \
+    --input-ipc-server=/var/run/displaycameras/mpv-test.sock \
     --loop \
     /test/test.mp4 &>/dev/null &
 MPV_PID=$!
@@ -69,7 +69,7 @@ echo $MPV_PID > /var/run/displaycameras/mpv-test.pid
 sleep 4
 
 kill -0 $MPV_PID 2>/dev/null && ok "mpv process running" || fail "mpv process not running"
-[ -S /tmp/mpv-test.sock ]    && ok "IPC socket created"  || fail "IPC socket not created"
+[ -S /var/run/displaycameras/mpv-test.sock ] && ok "IPC socket created" || fail "IPC socket not created"
 
 # ─────────────────────────────────────────
 section "4. mpv_ipccontrol Commands"
