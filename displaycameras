@@ -71,6 +71,7 @@ fi
 # Backward compat: old configs use omx_timeout, new configs use stream_timeout
 [ -n "$omx_timeout" ] && stream_timeout="${stream_timeout:-$omx_timeout}"
 [ "$stream_timeout" = "" ] && stream_timeout=30
+[ "$disable_audio" = "" ] && disable_audio="true"
 
 PIDDIR=/var/run/displaycameras
 PIDFILE=$PIDDIR/displaycameras.pid
@@ -138,6 +139,9 @@ start_player() {
     geo=$(convert_geometry "$pos")
     local pidf="$PIDDIR/mpv-${name}.pid"
 
+    local disable_audio_flag=""
+    [ "$disable_audio" = "true" ] && disable_audio_flag="--no-audio"
+
     local mpvlog="$LOGDIR/mpv-${name}.log"
     mark_start "$name"
     log "Starting mpv for ${name} at ${geo} — log: $mpvlog"
@@ -155,7 +159,19 @@ start_player() {
         --loop-file=inf \
         --log-file="$mpvlog" \
         --msg-level=all=warn \
+        --no-cache \
+        --demuxer-max-bytes=512K \
+        --demuxer-readahead-secs=1 \
+        --demuxer-lavf-analyzeduration=0.1 \
+        --demuxer-lavf-probesize=32768 \
+        --scale=bilinear \
+        --dscale=bilinear \
+        --dither=no \
+        --no-osc \
+        --no-osd-bar \
+        --no-input-default-bindings \
         ${video_rotate:+"--video-rotate=$video_rotate"} \
+        ${disable_audio_flag:+"$disable_audio_flag"} \
         ${FORCE_POS:+"$FORCE_POS"} \
         ${mpv_extra_opts:+$mpv_extra_opts} \
         "$feed" >> "$mpvlog" 2>&1 &
