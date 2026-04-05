@@ -214,6 +214,8 @@ restart)
     ;;
 
 repair)
+    exec 200>/var/run/displaycameras/repair.lock
+    flock -n 200 || exit 0
     if [ ! -f $PIDFILE ]; then exit 0; fi
     if [ "$(pgrep -c mpv)" -gt "$cameras" ]; then
         $0 restart
@@ -223,7 +225,6 @@ repair)
            [ "$(mpv_ipccontrol ${camera_names[$i]} getposition)" = "0s" ]; then
             increment_restart "${camera_names[$i]}"
             log "Repairing ${camera_names[$i]} (restart #$(get_restarts ${camera_names[$i]}))"
-            rm -f $PIDFILE
             pkill rotatedisplays 2>/dev/null
             mpv_ipccontrol ${camera_names[$i]} quit
             x=$((i + DISPLAY_SEQUENCE))
@@ -256,7 +257,6 @@ repair)
             else
                 echo "${camera_names[$i]} failed playback"
             fi
-            touch $PIDFILE
             if [ "$rotate" = "true" ] && [ "$2" != "startup" ]; then
                 [ "$rotatedelay" = "" ] && rotatedelay=5
                 echo "Restarting camera rotation"
