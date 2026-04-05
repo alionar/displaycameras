@@ -21,7 +21,7 @@ get_pid() {
 
 ipc_query() {
     local sock="$SOCKDIR/mpv-${1}.sock"
-    [ -S "$sock" ] && echo "$2" | socat - "$sock" 2>/dev/null
+    [ -S "$sock" ] && echo "$2" | socat -t 1 - UNIX-CONNECT:"$sock" 2>/dev/null
 }
 
 case $2 in
