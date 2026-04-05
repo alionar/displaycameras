@@ -27,6 +27,8 @@ section "1. Prerequisites"
 
 which mpv &>/dev/null          && ok "mpv installed"          || fail "mpv not found"
 which socat &>/dev/null        && ok "socat installed"        || fail "socat not found"
+which wmctrl &>/dev/null       && ok "wmctrl installed"       || fail "wmctrl not found"
+which xset &>/dev/null         && ok "xset installed"         || fail "xset not found"
 which mpv_ipccontrol &>/dev/null && ok "mpv_ipccontrol found" || fail "mpv_ipccontrol not found"
 which displaycameras &>/dev/null && ok "displaycameras found" || fail "displaycameras not found"
 [ -f /etc/displaycameras/displaycameras.conf ] && ok "displaycameras.conf exists" || fail "displaycameras.conf missing"
@@ -125,6 +127,38 @@ else
 fi
 
 displaycameras stop
+sleep 2
+
+# ─────────────────────────────────────────
+section "7. systemd service lifecycle"
+# ─────────────────────────────────────────
+
+# Check systemd services are running
+systemctl is-active xorg &>/dev/null     && ok "xorg.service active"     || fail "xorg.service not active"
+systemctl is-active openbox &>/dev/null  && ok "openbox.service active"  || fail "openbox.service not active"
+systemctl is-active novnc &>/dev/null    && ok "novnc.service active"    || fail "novnc.service not active"
+systemctl is-active cron &>/dev/null     && ok "cron.service active"     || fail "cron.service not active"
+
+# Test displaycameras via systemctl
+systemctl start displaycameras
+sleep 5
+systemctl is-active displaycameras &>/dev/null && ok "displaycameras.service active" || fail "displaycameras.service not active"
+
+status_out=$(displaycameras status)
+playing=$(echo "$status_out" | grep -c "is Playing")
+[ "$playing" -ge 1 ] && ok "systemctl start: $playing camera(s) Playing" || fail "systemctl start: no cameras playing"
+
+# Test reload (triggers repair)
+systemctl reload displaycameras
+sleep 3
+systemctl is-active displaycameras &>/dev/null && ok "service still active after reload" || fail "service died after reload"
+
+# Test stop completes within TimeoutStopSec (30s)
+timeout 35 systemctl stop displaycameras
+[ $? -eq 0 ] && ok "systemctl stop completed within timeout" || fail "systemctl stop timed out"
+
+systemctl is-active displaycameras &>/dev/null && fail "service still active after stop" || ok "service stopped"
+pgrep mpv &>/dev/null && fail "mpv still running after systemctl stop" || ok "all mpv stopped after systemctl stop"
 
 # ─────────────────────────────────────────
 section "Summary"

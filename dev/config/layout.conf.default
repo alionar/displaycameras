@@ -1,5 +1,5 @@
-# Test layout — uses local test video files instead of RTSP
-# Swap camera_feeds for real RTSP URLs when testing against actual cameras
+# Test layout — 6 cameras in 3x2 grid on 1920x1080
+# Uses local RTSP streams from mediamtx (test video)
 
 windows=(upper_left upper_middle upper_right center_left center_middle center_right)
 
@@ -12,28 +12,15 @@ window_positions=(
 "1280 360 1919 719" \
 )
 
-camera_names=(cam1 cam2 cam3 cam4 cam5 cam6)
+camera_names=(garasi teras1garasi teras1belokan teras2 teras2samping utama)
 
-# --- TEST MODE: local files ---
-# Comment this block and uncomment LIVE block to test real cameras
 camera_feeds=( \
-"/test/test.mp4" \
-"/test/test.mp4" \
-"/test/test.mp4" \
-"/test/test.mp4" \
-"/test/test.mp4" \
-"/test/test.mp4" \
+"rtsp://localhost:8554/cam1" \
+"rtsp://localhost:8554/cam2" \
+"rtsp://localhost:8554/cam3" \
+"rtsp://localhost:8554/cam4" \
+"rtsp://localhost:8554/cam5" \
+"rtsp://localhost:8554/cam6" \
 )
-
-# --- LIVE MODE: real RTSP cameras ---
-# Uncomment to test against actual cameras on your network
-#camera_feeds=( \
-#"rtsp://RTSP_IP1" \
-#"rtsp://RTSP_IP2" \
-#"rtsp://RTSP_IP3" \
-#"rtsp://RTSP_IP4" \
-#"rtsp://RTSP_IP5" \
-#"rtsp://RTSP_IP6" \
-#)
 
 rotate="false"

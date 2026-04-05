@@ -7,19 +7,24 @@ services:
         - linux/arm64
     platform: linux/arm64
     container_name: displaycameras-dev
-    privileged: true                  # needed for /var/run and process management
+    privileged: true                  # needed for systemd and process management
+    cgroup: host
     ports:
       - "6080:6080"                   # noVNC → open http://localhost:6080/vnc.html
     volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw                    # cgroup v2 for systemd
       - ../displaycameras:/usr/bin/displaycameras             # live edit — no rebuild needed
       - ../mpv_ipccontrol:/usr/bin/mpv_ipccontrol            # live edit — no rebuild needed
       - ../rotatedisplays:/usr/bin/rotatedisplays            # live edit — no rebuild needed
+      - ../displaycameras.service:/etc/systemd/system/displaycameras.service  # live edit service
       - ./config:/etc/displaycameras                         # live edit config
       - ./tests:/tests                                      # live edit tests
       - ./logs:/var/log/displaycameras                      # persist logs on host
+    tmpfs:
+      - /run
+      - /run/lock
+      - /tmp
     environment:
       - DISPLAY=:0
     # Use host network so container can reach cameras at 192.168.68.x
     network_mode: host
-    stdin_open: true
-    tty: true
