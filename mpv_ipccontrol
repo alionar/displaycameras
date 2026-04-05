@@ -8,7 +8,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 PIDDIR=/var/run/displaycameras
-SOCKDIR=/tmp
+SOCKDIR=$PIDDIR
 LOGFILE=/var/log/displaycameras/ipc.log
 mkdir -p /var/log/displaycameras
 
