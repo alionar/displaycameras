@@ -57,7 +57,6 @@ else
     . /etc/displaycameras/layout.conf.default
 fi
 
-# Ensure timeout has a value
 # Backward compat: old configs use omx_timeout, new configs use stream_timeout
 [ -n "$omx_timeout" ] && stream_timeout="${stream_timeout:-$omx_timeout}"
 [ "$stream_timeout" = "" ] && stream_timeout=30
@@ -87,17 +86,6 @@ get_restarts() {
 
 # Uptime tracker per camera
 mark_start() { date '+%s' > "$STATSDIR/${1}.started"; }
-get_uptime() {
-    local f="$STATSDIR/${1}.started"
-    if [ -f "$f" ]; then
-        local started=$(cat "$f")
-        local now=$(date '+%s')
-        local secs=$((now - started))
-        printf '%02dh:%02dm:%02ds' $((secs/3600)) $(((secs%3600)/60)) $((secs%60))
-    else
-        echo "unknown"
-    fi
-}
 
 cameras="${#camera_names[@]}"
 max_seq=$((cameras-1))
