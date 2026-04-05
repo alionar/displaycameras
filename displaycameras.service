@@ -2,7 +2,7 @@
 Description=Display Camera Feeds
 After=network-online.target xorg.service
 Wants=network-online.target
-Requires=xorg.service
+BindsTo=xorg.service
 
 [Service]
 Type=oneshot
