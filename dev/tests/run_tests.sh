@@ -113,17 +113,17 @@ displaycameras start
 sleep 3
 
 # Manually kill one camera to simulate failure
-cam_pid=$(cat /var/run/displaycameras/mpv-garasi.pid 2>/dev/null)
+cam_pid=$(cat /var/run/displaycameras/mpv-cam1.pid 2>/dev/null)
 if [ -n "$cam_pid" ]; then
     kill $cam_pid 2>/dev/null
     sleep 1
-    kill -0 $cam_pid 2>/dev/null && fail "Camera not killed" || ok "Simulated camera failure (garasi)"
+    kill -0 $cam_pid 2>/dev/null && fail "Camera not killed" || ok "Simulated camera failure (cam1)"
     displaycameras repair
     sleep 5
-    new_status=$(mpv_ipccontrol garasi getplaystatus)
-    [ "$new_status" = "Playing" ] && ok "garasi recovered after repair" || fail "garasi not recovered: '$new_status'"
+    new_status=$(mpv_ipccontrol cam1 getplaystatus)
+    [ "$new_status" = "Playing" ] && ok "cam1 recovered after repair" || fail "cam1 not recovered: '$new_status'"
 else
-    fail "Could not get garasi PID for repair test"
+    fail "Could not get cam1 PID for repair test"
 fi
 
 displaycameras stop

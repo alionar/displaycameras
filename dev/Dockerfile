@@ -133,7 +133,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
-# mediamtx config (RTSP server — 6 streams matching test layout)
+# mediamtx config (RTSP server — 4 streams matching test layout)
 RUN mkdir -p /etc/mediamtx && cat > /etc/mediamtx/mediamtx.yml <<'EOF'
 logLevel: warn
 paths:
@@ -144,10 +144,6 @@ paths:
   cam3:
     source: publisher
   cam4:
-    source: publisher
-  cam5:
-    source: publisher
-  cam6:
     source: publisher
 EOF
 
@@ -179,12 +175,12 @@ Type=oneshot
 RemainAfterExit=yes
 ExecStartPre=/bin/sleep 2
 ExecStart=/bin/bash -c '\
-  for i in 1 2 3 4 5 6; do \
+  for i in 1 2 3 4; do \
     ffmpeg -re -stream_loop -1 -i /test/test.mp4 \
       -c copy -f rtsp rtsp://localhost:8554/cam$i \
       </dev/null >/dev/null 2>&1 & \
   done; \
-  echo "All 6 RTSP feeds started"'
+  echo "All 4 RTSP feeds started"'
 ExecStop=/bin/bash -c 'pkill -f "ffmpeg.*rtsp://localhost:8554"'
 
 [Install]
