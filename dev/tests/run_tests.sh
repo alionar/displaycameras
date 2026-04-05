@@ -106,6 +106,25 @@ pgrep mpv &>/dev/null && fail "mpv still running after stop" || ok "All mpv stop
 [ ! -f /var/run/displaycameras/displaycameras.pid ] && ok "PID file removed" || fail "PID file still exists"
 
 # ─────────────────────────────────────────
+section "5b. Optimization flags in mpv args"
+# ─────────────────────────────────────────
+
+displaycameras start
+sleep 3
+
+mpv_args=$(ps -o args= -C mpv | head -1)
+
+echo "$mpv_args" | grep -q '\-\-no-cache'              && ok "Flag: --no-cache"              || fail "Flag: --no-cache missing"
+echo "$mpv_args" | grep -q '\-\-demuxer-max-bytes'     && ok "Flag: --demuxer-max-bytes"     || fail "Flag: --demuxer-max-bytes missing"
+echo "$mpv_args" | grep -q '\-\-scale=bilinear'        && ok "Flag: --scale=bilinear"        || fail "Flag: --scale=bilinear missing"
+echo "$mpv_args" | grep -q '\-\-no-osc'                && ok "Flag: --no-osc"                || fail "Flag: --no-osc missing"
+echo "$mpv_args" | grep -q '\-\-no-audio'              && ok "Flag: --no-audio"              || fail "Flag: --no-audio missing"
+echo "$mpv_args" | grep -q '\-\-demuxer-lavf-probesize' && ok "Flag: --demuxer-lavf-probesize" || fail "Flag: --demuxer-lavf-probesize missing"
+
+displaycameras stop
+sleep 2
+
+# ─────────────────────────────────────────
 section "6. displaycameras repair"
 # ─────────────────────────────────────────
 
@@ -159,6 +178,47 @@ timeout 35 systemctl stop displaycameras
 
 systemctl is-active displaycameras &>/dev/null && fail "service still active after stop" || ok "service stopped"
 pgrep mpv &>/dev/null && fail "mpv still running after systemctl stop" || ok "all mpv stopped after systemctl stop"
+
+# ─────────────────────────────────────────
+section "8. rotate / rotaterev"
+# ─────────────────────────────────────────
+
+SEQ_FILE=/tmp/displaycameras.seq
+
+displaycameras start
+sleep 3
+
+[ -f "$SEQ_FILE" ] && ok "Sequence file exists" || fail "Sequence file missing"
+[ "$(cat $SEQ_FILE)" = "0" ] && ok "Initial sequence is 0" || fail "Initial sequence: $(cat $SEQ_FILE)"
+
+# Capture positions before rotate
+before=$(DISPLAY=:0 wmctrl -l -G 2>/dev/null)
+
+displaycameras rotate
+sleep 1
+
+[ "$(cat $SEQ_FILE)" = "3" ] && ok "Sequence after rotate: 3" || fail "Sequence after rotate: $(cat $SEQ_FILE) (expected 3)"
+
+after=$(DISPLAY=:0 wmctrl -l -G 2>/dev/null)
+[ "$before" != "$after" ] && ok "Windows moved after rotate" || fail "Windows unchanged after rotate"
+
+displaycameras rotaterev
+sleep 1
+
+[ "$(cat $SEQ_FILE)" = "0" ] && ok "Sequence after rotaterev: 0" || fail "Sequence after rotaterev: $(cat $SEQ_FILE) (expected 0)"
+
+returned=$(DISPLAY=:0 wmctrl -l -G 2>/dev/null)
+[ "$before" = "$returned" ] && ok "Windows returned to original positions" || fail "Windows not back to original positions"
+
+displaycameras stop
+sleep 2
+
+# rotate without running cameras should exit cleanly
+displaycameras rotate 2>/dev/null
+[ $? -eq 0 ] && ok "rotate without PIDFILE exits 0" || fail "rotate without PIDFILE failed"
+
+err=$(displaycameras rotate 2>&1 >/dev/null)
+[ -z "$err" ] && ok "rotate without PIDFILE no stderr" || fail "rotate without PIDFILE stderr: $err"
 
 # ─────────────────────────────────────────
 section "Summary"
