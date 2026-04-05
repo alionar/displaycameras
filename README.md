@@ -114,7 +114,7 @@ Edit `/etc/displaycameras/displaycameras.conf` and `/etc/displaycameras/layout.c
 ### Global Options (`displaycameras.conf`)
 | Variable | Description |
 |----------|-------------|
-| `omx_timeout` | Network timeout in seconds (default: 30) |
+| `stream_timeout` | Network timeout in seconds (default: 30). Old name `omx_timeout` still works. |
 | `startsleep` | Seconds to wait after launching each mpv instance |
 | `feedsleep` | Seconds to wait before checking feed playback position |
 | `retry` | Max retries for startup and feed checks |

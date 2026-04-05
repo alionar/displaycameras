@@ -58,7 +58,9 @@ else
 fi
 
 # Ensure timeout has a value
-[ "$omx_timeout" = "" ] && omx_timeout=30
+# Backward compat: old configs use omx_timeout, new configs use stream_timeout
+[ -n "$omx_timeout" ] && stream_timeout="${stream_timeout:-$omx_timeout}"
+[ "$stream_timeout" = "" ] && stream_timeout=30
 
 PIDDIR=/var/run/displaycameras
 PIDFILE=$PIDDIR/displaycameras.pid
@@ -135,7 +137,7 @@ start_player() {
         --title="$name" \
         --hwdec=auto-safe \
         --rtsp-transport=tcp \
-        --demuxer-lavf-o=timeout=$((omx_timeout * 1000000)) \
+        --demuxer-lavf-o=timeout=$((stream_timeout * 1000000)) \
         --input-ipc-server="/tmp/mpv-${name}.sock" \
         --loop-file=inf \
         --log-file="$mpvlog" \
