@@ -42,9 +42,20 @@ fi
 
 # Load layout config (with optional display detection)
 if [ "$displaydetect" = "true" ]; then
-    if [ "$(grep disable_overscan /boot/config.txt | grep -v ^#)" = "disable_overscan=1" ]; then
-        mode="$(fbset -s | grep ^mode | awk '{print $2}' | tr -d '"')"
-        if [ -r /etc/displaycameras/layout.conf.$mode ]; then
+    # Check overscan in config.txt (Bookworm path first, then legacy)
+    overscan_disabled=false
+    for boot_config in /boot/firmware/config.txt /boot/config.txt; do
+        if [ -f "$boot_config" ]; then
+            if grep -q "^disable_overscan=1" "$boot_config"; then
+                overscan_disabled=true
+            fi
+            break
+        fi
+    done
+    if [ "$overscan_disabled" = "true" ]; then
+        # Detect resolution via xdpyinfo (works under KMS, replaces fbset)
+        mode="$(DISPLAY=$XDISPLAY xdpyinfo 2>/dev/null | awk '/dimensions:/{print $2}')"
+        if [ -n "$mode" ] && [ -r /etc/displaycameras/layout.conf.$mode ]; then
             . /etc/displaycameras/layout.conf.$mode
             displaydetectactive=true
         else

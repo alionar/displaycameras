@@ -1,0 +1,26 @@
+# Resolution-detected layout for 1920x1080 — 6 cameras in 3x2 grid
+# Loaded by displaydetect when xdpyinfo reports this resolution
+
+windows=(upper_left upper_middle upper_right center_left center_middle center_right)
+
+window_positions=(
+"0 0 639 359" \
+"640 0 1279 359" \
+"1280 0 1919 359" \
+"0 360 639 719" \
+"640 360 1279 719" \
+"1280 360 1919 719" \
+)
+
+camera_names=(garasi teras1garasi teras1belokan teras2 teras2samping utama)
+
+camera_feeds=( \
+"rtsp://localhost:8554/cam1" \
+"rtsp://localhost:8554/cam2" \
+"rtsp://localhost:8554/cam3" \
+"rtsp://localhost:8554/cam4" \
+"rtsp://localhost:8554/cam5" \
+"rtsp://localhost:8554/cam6" \
+)
+
+rotate="false"
