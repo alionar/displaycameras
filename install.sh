@@ -96,7 +96,7 @@ OPENBOX_EOF
     # Disable screen blanking and DPMS via openbox autostart
     echo "Disabling screen blanking in openbox autostart."
     mkdir -p /etc/xdg/openbox
-    cat >> /etc/xdg/openbox/autostart <<'AUTOSTART_EOF'
+    cat > /etc/xdg/openbox/autostart <<'AUTOSTART_EOF'
 xset -dpms
 xset s noblank
 xset s off
