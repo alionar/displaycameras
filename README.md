@@ -369,3 +369,17 @@ window_positions=(
 | New commands | — | `observe`, `debug`, `logs` |
 
 Config files (`displaycameras.conf`, `layout.conf.*`) are **unchanged** — no migration needed.
+
+## Performance Note
+
+omxplayer decoded video on the Broadcom VideoCore GPU and rendered via a hardware overlay (DispmanX), using ~5% CPU. mpv decodes through X11 and uses significantly more CPU for both decode and display compositing. Hardware decode (`--hwdec=auto-safe`) is unreliable on Bookworm arm64 and often falls back to software decode.
+
+Expect higher CPU usage on this branch. Recommended hardware:
+
+| Hardware | Cameras | Notes |
+|----------|---------|-------|
+| Pi 4 (1.5GHz, 4GB+) | 2-4 at 720p | Use 720p streams. 1080p limits you to 1-2 feeds. |
+| Pi 3 (1.2GHz, 1GB) | 1-2 at 720p | CPU saturates beyond 2 streams. Increase `startsleep`/`feedsleep`. |
+| Pi Zero 2W (1GHz, 512MB) | Not recommended | 512MB is too tight for X11 + mpv. Single stream may work briefly but degrades over time. |
+
+If feeds freeze or restart in a loop, your Pi is CPU-starved. Lower camera stream resolution, reduce the number of feeds, or upgrade to a Pi 4.
