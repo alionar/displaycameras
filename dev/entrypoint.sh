@@ -10,7 +10,8 @@ Xvnc $DISPLAY_NUM \
     -geometry 1920x1080 \
     -depth 24 \
     -rfbport $VNC_PORT \
-    -SecurityTypes None &
+    -SecurityTypes None \
+    -ac &
 sleep 3
 
 echo "==> Starting Openbox window manager"
@@ -27,6 +28,9 @@ echo "  Display available at:"
 echo "  http://localhost:$NOVNC_PORT/vnc.html"
 echo "============================================"
 echo ""
+
+echo "==> Starting cron (repair job)"
+cron
 
 export DISPLAY=$DISPLAY_NUM
 

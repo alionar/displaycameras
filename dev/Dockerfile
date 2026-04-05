@@ -3,9 +3,13 @@ FROM --platform=linux/arm64 vascoguita/raspios:arm64
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    # Player and IPC
+    # Player and IPC (matches install.sh)
     mpv \
     socat \
+    wmctrl \
+    # X11 utilities (xset, xdpyinfo)
+    x11-utils \
+    x11-xserver-utils \
     # Virtual display + VNC (tigervnc bundles X server + VNC in one)
     tigervnc-standalone-server \
     websockify \
@@ -15,7 +19,6 @@ RUN apt-get update && apt-get install -y \
     procps \
     cron \
     bash \
-    x11-utils \
     openbox \
     python3-xdg \
     menu \
@@ -44,9 +47,17 @@ COPY dev/config/openbox-rc.xml           /root/.config/openbox/rc.xml
 RUN printf '#!/bin/sh\nxset -dpms 2>/dev/null || true\nxset s noblank 2>/dev/null || true\nxset s off 2>/dev/null || true\n' > /etc/xdg/openbox/autostart && \
     chmod +x /etc/xdg/openbox/autostart
 
-# Generate test video (640x360 color bars, 1 hour loop)
+# Generate test video (480x360 4:3 in 640x360 16:9 windows — exposes aspect ratio bugs, 60s loop)
 RUN mkdir -p /test && \
-    ffmpeg -f lavfi -i testsrc=size=640x360:rate=25 -t 60 /test/test.mp4 -y -loglevel quiet
+    ffmpeg -f lavfi -i testsrc=size=480x360:rate=25 -t 60 /test/test.mp4 -y -loglevel quiet
+
+# Install cron job (matches real Pi install)
+COPY repaircameras.cron /etc/cron.d/repaircameras
+RUN chmod 0644 /etc/cron.d/repaircameras
+
+# Mock /boot/firmware (Bookworm path for displaydetect)
+RUN mkdir -p /boot/firmware && \
+    echo "disable_overscan=1" > /boot/firmware/config.txt
 
 # PID dir
 RUN mkdir -p /var/run/displaycameras
