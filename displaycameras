@@ -314,7 +314,7 @@ observe)
     # Live status dashboard — refreshes every 5s
     watch -n5 "
         echo '=== displaycameras observe ==='
-        echo \"  $(date '+%Y-%m-%d %H:%M:%S')\"
+        echo \"  \$(date '+%Y-%m-%d %H:%M:%S')\"
         echo ''
         printf '%-20s %-10s %-12s %-10s\n' 'CAMERA' 'STATUS' 'UPTIME' 'RESTARTS'
         printf '%-20s %-10s %-12s %-10s\n' '------' '------' '------' '--------'
