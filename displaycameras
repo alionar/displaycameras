@@ -349,7 +349,9 @@ rotate)
         [ "$y" -ge "${#camera_names[@]}" ] && y=$((y-${#camera_names[@]}))
         x=$((y+DISPLAY_SEQUENCE))
         [ "$x" -ge "${#camera_names[@]}" ] && x=$((x-${#camera_names[@]}))
-        mpv_ipccontrol "${camera_names[$y]}" setvideopos "$(convert_geometry "${window_positions[$x]}")"
+        read x1 y1 x2 y2 <<< "${window_positions[$x]}"
+        w=$((x2-x1+1)); h=$((y2-y1+1))
+        DISPLAY=$XDISPLAY wmctrl -F -r "${camera_names[$y]}" -e "0,${x1},${y1},${w},${h}"
     done
     echo $DISPLAY_SEQUENCE > $DISPLAY_SEQUENCE_FILE
     ;;
@@ -366,7 +368,9 @@ rotaterev)
         [ "$y" -ge "${#camera_names[@]}" ] && y=$((y-${#camera_names[@]}))
         x=$((y+DISPLAY_SEQUENCE))
         [ "$x" -ge "${#camera_names[@]}" ] && x=$((x-${#camera_names[@]}))
-        mpv_ipccontrol "${camera_names[$y]}" setvideopos "$(convert_geometry "${window_positions[$x]}")"
+        read x1 y1 x2 y2 <<< "${window_positions[$x]}"
+        w=$((x2-x1+1)); h=$((y2-y1+1))
+        DISPLAY=$XDISPLAY wmctrl -F -r "${camera_names[$y]}" -e "0,${x1},${y1},${w},${h}"
     done
     echo $DISPLAY_SEQUENCE > $DISPLAY_SEQUENCE_FILE
     ;;

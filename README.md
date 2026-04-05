@@ -22,10 +22,11 @@ If you feel compelled to contribute to the project, feel free to send funds to h
 The install script handles this automatically. To install manually:
 
 ```bash
-sudo apt-get install -y mpv socat xserver-xorg-core xserver-xorg xinit openbox
+sudo apt-get install -y mpv socat wmctrl xserver-xorg-core xserver-xorg xinit openbox
 ```
 
 `socat` is required by `mpv_ipccontrol` to communicate with mpv's IPC socket.
+`wmctrl` is required for camera rotation (repositions mpv windows via X11).
 
 ## X11 requirement
 

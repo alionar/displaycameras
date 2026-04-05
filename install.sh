@@ -4,7 +4,7 @@
 DIR=$(dirname "$(readlink -f "$0")")
 
 # Install prerequisites
-for package in mpv socat xserver-xorg-core xserver-xorg xinit openbox x11-xserver-utils procps; do
+for package in mpv socat wmctrl xserver-xorg-core xserver-xorg xinit openbox x11-xserver-utils procps; do
     if [ "$(dpkg-query -s $package 2>/dev/null | grep Status | awk '{print $4}')" != "installed" ]; then
         apt-get install $package -y
     fi

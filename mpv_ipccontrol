@@ -58,12 +58,6 @@ getposition)
     fi
     ;;
 
-setvideopos)
-    geo="$3"
-    result=$(ipc_query "$1" "{\"command\":[\"set_property\",\"geometry\",\"$geo\"]}")
-    ipc_log "$1" "setvideopos" "$geo (raw: $result)"
-    ;;
-
 quit)
     pid=$(get_pid "$1")
     if [ -n "$pid" ]; then
@@ -77,7 +71,7 @@ quit)
     ;;
 
 *)
-    echo "usage: $0 camera_name getplaystatus|getposition|setvideopos|quit" >&2
+    echo "usage: $0 camera_name getplaystatus|getposition|quit" >&2
     exit 1
     ;;
 esac
