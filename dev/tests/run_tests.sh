@@ -83,6 +83,7 @@ echo "$mpv_args" | grep -q '\-\-scale=bilinear'        && ok "Flag: --scale=bili
 echo "$mpv_args" | grep -q '\-\-no-osc'                && ok "Flag: --no-osc"                || fail "Flag: --no-osc missing"
 echo "$mpv_args" | grep -q '\-\-no-audio'              && ok "Flag: --no-audio"              || fail "Flag: --no-audio missing"
 echo "$mpv_args" | grep -q '\-\-demuxer-lavf-probesize' && ok "Flag: --demuxer-lavf-probesize" || fail "Flag: --demuxer-lavf-probesize missing"
+echo "$mpv_args" | grep -q '\-\-hwdec'                  && ok "Flag: --hwdec present"          || fail "Flag: --hwdec missing"
 
 displaycameras stop
 sleep 2

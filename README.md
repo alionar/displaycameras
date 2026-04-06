@@ -375,7 +375,9 @@ Config files (`displaycameras.conf`, `layout.conf.*`) are **unchanged** — no m
 
 ## Performance Note
 
-omxplayer decoded video on the Broadcom VideoCore GPU and rendered via a hardware overlay (DispmanX), using ~5% CPU. mpv decodes through X11 and uses significantly more CPU for both decode and display compositing. Hardware decode (`--hwdec=auto-safe`) is unreliable on Bookworm arm64 and often falls back to software decode.
+omxplayer decoded video on the Broadcom VideoCore GPU and rendered via a hardware overlay (DispmanX), using ~5% CPU. mpv decodes through X11 and uses more CPU for both decode and display compositing.
+
+Hardware decode is detected automatically: on Pi 3/4, the script uses `--hwdec=v4l2m2m-copy` (H.264 decode via the bcm2835-codec GPU driver, ~5-10% CPU per stream). On Pi 5 (no H.264 hardware decoder), it falls back to `--hwdec=auto-safe` (software decode).
 
 **Built-in optimizations:** The script applies several mpv flags automatically to reduce CPU, GPU, and memory usage on the Pi:
 - Audio disabled by default (`disable_audio="true"` in config) — saves ~3-5% CPU per stream
@@ -388,12 +390,15 @@ Combined savings: ~10-15% CPU per stream and ~150MB RAM per stream. For a 4-came
 
 To re-enable audio (e.g. for a camera with a microphone), set `disable_audio="false"` in `displaycameras.conf`. To override any optimization flag, use `mpv_extra_opts` (mpv uses last-wins for duplicate flags).
 
+**Pi 5 users:** The Pi 5 has no H.264 hardware decoder but does have an HEVC (H.265) hardware decoder. If your cameras support H.265 streams (most modern Hikvision, Dahua, Reolink, Ubiquiti cameras do), configure them to output H.265 — mpv will automatically use hardware decode via `drm-copy`, significantly reducing CPU usage.
+
 Expect higher CPU usage on this branch than omxplayer. Recommended hardware:
 
 | Hardware | Cameras | Notes |
 |----------|---------|-------|
-| Pi 4 (1.5GHz, 4GB+) | 4-6 at 720p | With optimizations. 1080p: 2-4 feeds. |
-| Pi 3 (1.2GHz, 1GB) | 2-3 at 720p | With optimizations. Increase `startsleep`/`feedsleep`. |
+| Pi 5 (2.4GHz, 4GB+) | 6-8 at 720p | H.264 software decode. Use H.265 streams for hardware decode. |
+| Pi 4 (1.5GHz, 4GB+) | 4-6 at 720p | H.264 hardware decode via v4l2m2m. 1080p: 2-4 feeds. |
+| Pi 3 (1.2GHz, 1GB) | 2-3 at 720p | H.264 hardware decode via v4l2m2m. Increase `startsleep`/`feedsleep`. |
 | Pi Zero 2W (1GHz, 512MB) | Not recommended | 512MB is too tight for X11 + mpv. Single stream may work briefly but degrades over time. |
 
 If feeds freeze or restart in a loop, your Pi is CPU-starved. Lower camera stream resolution, reduce the number of feeds, or upgrade to a Pi 4.

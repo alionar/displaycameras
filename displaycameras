@@ -32,6 +32,12 @@ if mpv --list-options 2>/dev/null | grep -q 'force-window-position'; then
     FORCE_POS="--force-window-position=yes"
 fi
 
+# Detect V4L2 M2M hardware decoder (Pi 3/4 bcm2835-codec)
+HWDEC="--hwdec=auto-safe"
+if [ -e /dev/video10 ]; then
+    HWDEC="--hwdec=v4l2m2m-copy"
+fi
+
 # Load global config
 if [ -r /etc/displaycameras/displaycameras.conf ]; then
     . /etc/displaycameras/displaycameras.conf
@@ -152,7 +158,7 @@ start_player() {
         --geometry="$geo" \
         --no-keepaspect \
         --title="$name" \
-        --hwdec=auto-safe \
+        $HWDEC \
         --rtsp-transport=tcp \
         --demuxer-lavf-o=timeout=$((stream_timeout * 1000000)) \
         --input-ipc-server="$PIDDIR/mpv-${name}.sock" \
