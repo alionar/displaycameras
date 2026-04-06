@@ -207,7 +207,9 @@ docker compose down
 Edit `dev/config/layout.conf.default` — comment out the TEST MODE block and uncomment the LIVE MODE block with your real RTSP URLs. The container uses `network_mode: host` so it can reach cameras on your LAN directly.
 
 ### CPU usage note
-Expect high CPU usage (~600%+) during testing on Mac. This is normal — the ARM64 container runs under QEMU emulation. On the real Raspberry Pi 4 (native ARM64 + hardware decode), CPU usage will be significantly lower.
+On x86 hosts, the ARM64 container runs under QEMU emulation (~10-20x slower). Expect high CPU (~600%+), IPC timeouts, and inflated resource usage. On native ARM64 hosts (Apple Silicon, ARM Linux), Docker runs without emulation and resource usage will be closer to real hardware.
+
+Either way, use the Docker environment for **logical testing only** (script flow, flag checks, geometry conversion, IPC commands). To measure actual per-stream CPU and RAM, hardware decode behavior, and max camera capacity, test on a real Raspberry Pi.
 
 ## Debugging
 
